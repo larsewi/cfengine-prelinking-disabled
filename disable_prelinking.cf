@@ -1,0 +1,32 @@
+# Policy to disable prelinking
+
+bundle edit_line swap_yes_no(option)
+{
+  # Swap option value from yes to no
+  replace_patterns:
+      "$(option)=yes"
+        replace_with => value("$(option)=no");
+}
+
+bundle agent disable_prelinking
+{
+  # Enable autorun
+  meta:
+      "tags" slist => { "autorun" };
+
+  # Path to prelink configuration file
+  vars:
+      "prelink_config_file"
+        string => "/etc/sysconfig/prelink";
+
+  # Disable prelink in configuration file
+  files:
+      "$(prelink_config_file)"
+        edit_line => swap_yes_no("PRELINKING"),
+        classes => if_repaired("prelink_config_file_repaired");
+
+  # Implement changes if prelink configuration file was repaired
+  commands:
+    prelink_config_file_repaired::
+      "/etc/cron.daily/prelink";
+}

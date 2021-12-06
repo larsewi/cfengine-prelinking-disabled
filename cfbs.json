@@ -1,0 +1,13 @@
+{
+  "name": "prelinking-disabled",
+  "type": "module",
+  "description": "Disable prelinking.",
+  "provides": {
+    "prelinking-disabled": {
+      "description": "Disable prelinking.",
+      "tags": ["security"],
+      "dependencies": ["autorun"],
+      "steps": ["copy ./disable_prelinking.cf services/autorun/disable_prelinking.cf"]
+    }
+  }
+}
