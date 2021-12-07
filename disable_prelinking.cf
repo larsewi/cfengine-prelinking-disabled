@@ -4,7 +4,7 @@ bundle edit_line option_set_no(option)
 {
   # Set option value to 'no'
   replace_patterns:
-      "^$(option)=.*$"
+      "^$(option)=(?!no).*$"
         replace_with => value("$(option)=no");
 }
 
@@ -14,27 +14,22 @@ bundle agent disable_prelinking
   meta:
       "tags" slist => { "autorun" };
 
-  # Path to prelink configuration file
-  vars:
-    redhat::
-      "prelink_conf"
-        string => "/etc/sysconfig/prelink";
-    debian::
-      "prelink_conf"
-        string => "/etc/default/prelink";
-    any::
-      "prelink_bin"
-        string => "/etc/cron.daily/prelink";
-
   # Disable prelink in configuration file
   files:
-    redhat|debian::
-      "$(prelink_conf)"
+      # Redhat systems
+      "/etc/sysconfig/prelink"
         edit_line => option_set_no("PRELINKING"),
-        classes => if_repaired("prelink_config_file_repaired");
+        classes => if_repaired("prelink_config_file_repaired"),
+        if => fileexists("/etc/sysconfig/prelink");
+
+      # Debian systems
+      "/etc/default/prelink"
+        edit_line => option_set_no("PRELINKING"),
+        classes => if_repaired("prelink_config_file_repaired"),
+        if => fileexists("/etc/default/prelink");
 
   # Implement changes if prelink configuration file was repaired
   commands:
     prelink_config_file_repaired::
-      "$(prelink_bin)";
+      "/etc/cron.daily/prelink";
 }
