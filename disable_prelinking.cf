@@ -1,35 +1,32 @@
 # Policy to disable prelinking
-
-bundle edit_line option_set_no(option)
-{
-  # Set option value to 'no'
-  replace_patterns:
-      "^$(option)=(?!no).*$"
-        replace_with => value("$(option)=no");
-}
-
 bundle agent disable_prelinking
 {
   # Enable autorun
   meta:
+    linux::
       "tags" slist => { "autorun" };
+
+  vars:
+      "_config_file"
+        string => ifelse( "suse|redhat", "/etc/sysconfig/prelink",
+                          "debian", "/etc/default/prelink",
+                          "/etc/default/prelink");
+      "_config[PRELINKING]" string => "no";
 
   # Disable prelink in configuration file
   files:
-      # Redhat systems
-      "/etc/sysconfig/prelink"
-        edit_line => option_set_no("PRELINKING"),
-        classes => if_repaired("prelink_config_file_repaired"),
-        if => fileexists("/etc/sysconfig/prelink");
 
-      # Debian systems
-      "/etc/default/prelink"
-        edit_line => option_set_no("PRELINKING"),
-        classes => if_repaired("prelink_config_file_repaired"),
-        if => fileexists("/etc/default/prelink");
+      "$(_config_file)" -> { "CCE-27078-5" }
+        create => "true",
+        edit_line => default:set_line_based("$(this.namespace):$(this.bundle)._config",
+                                    " ",
+                                    "\s+",
+                                    ".*",
+                                    "\s*#\s*"),
+        classes => default:results( "bundle", "prelink_config_file");
 
   # Implement changes if prelink configuration file was repaired
   commands:
     prelink_config_file_repaired::
-      "/etc/cron.daily/prelink";
+      "/usr/sbin/prelink -ua";
 }
