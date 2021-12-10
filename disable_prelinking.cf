@@ -29,6 +29,7 @@ bundle agent disable_prelinking
 
   files:
     # Disable prelink in configuration file
+    _stdlib_path_exists_prelink::
       "$(_config_file)" -> { "CCE-27078-5" }
         create => "true",
         edit_line => set_line_based("$(this.bundle)._config",
@@ -38,6 +39,6 @@ bundle agent disable_prelinking
   commands:
     # Implement changes if prelink configuration file was repaired and path to
     # binary exists
-    prelink_config_file_repaired&_stdlib_path_exists_prelink::
+    prelink_config_file_repaired::
       "$(paths.prelink) -ua";
 }
