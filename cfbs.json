@@ -1,5 +1,5 @@
 {
-  "name": "prelinking-disabled",
+  "name": "disable-prelinking",
   "description": "Disable prelinking.",
   "type": "module",
   "provides": {
